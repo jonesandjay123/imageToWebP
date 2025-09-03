@@ -89,6 +89,22 @@ python main.py
 ### macOS tkinter 問題
 如果在macOS上遇到tkinter相關錯誤：
 
+**解決方案一：使用系統內建Python（推薦）**
+```bash
+# 刪除舊的虛擬環境
+rm -rf venv
+
+# 使用系統內建Python創建虛擬環境（通常包含tkinter）
+/usr/bin/python3 -m venv venv
+
+# 啟動虛擬環境
+source venv/bin/activate
+
+# 安裝依賴套件
+pip install -r requirements.txt
+```
+
+**解決方案二：安裝支援tkinter的Python**
 ```bash
 # 使用Homebrew安裝支援tkinter的Python
 brew install python-tk

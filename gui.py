@@ -8,8 +8,18 @@ class ImageToWebPGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("圖片轉WebP工具")
-        self.root.geometry("600x500")
+        self.root.geometry("700x600")
         self.root.resizable(True, True)
+        
+        # 設置窗口居中顯示
+        self.center_window()
+        
+        # 設置窗口圖標（如果有的話）
+        try:
+            # 這裡可以設置窗口圖標
+            pass
+        except:
+            pass
         
         self.converter = ImageConverter()
         self.selected_files = []
@@ -17,76 +27,132 @@ class ImageToWebPGUI:
         
         self.create_widgets()
     
+    def center_window(self):
+        """將窗口居中顯示"""
+        self.root.update_idletasks()
+        width = 700
+        height = 600
+        x = (self.root.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.root.winfo_screenheight() // 2) - (height // 2)
+        self.root.geometry(f'{width}x{height}+{x}+{y}')
+    
     def create_widgets(self):
-        main_frame = ttk.Frame(self.root, padding="10")
-        main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        # 設置主窗口的最小尺寸
+        self.root.minsize(600, 500)
         
-        self.root.columnconfigure(0, weight=1)
-        self.root.rowconfigure(0, weight=1)
-        main_frame.columnconfigure(1, weight=1)
-        main_frame.rowconfigure(2, weight=1)
+        # 設置主窗口背景色以支援 dark mode
+        self.root.configure(bg='#2b2b2b')
         
-        ttk.Label(main_frame, text="選擇要轉換的圖片檔案:", font=("Arial", 12)).grid(
-            row=0, column=0, columnspan=2, sticky=tk.W, pady=(0, 5)
-        )
+        # 使用 Frame 而不是 ttk.Frame 來更好地控制顏色
+        main_frame = tk.Frame(self.root, bg='#2b2b2b')
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
         
-        select_frame = ttk.Frame(main_frame)
-        select_frame.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 10))
-        select_frame.columnconfigure(1, weight=1)
+        # 標題 - 使用明顯的白色文字
+        title_label = tk.Label(main_frame, text="圖片轉WebP工具", 
+                              font=("Arial", 18, "bold"),
+                              fg='white', bg='#2b2b2b')
+        title_label.pack(pady=(0, 20))
         
-        ttk.Button(select_frame, text="選擇檔案", command=self.select_files).grid(
-            row=0, column=0, padx=(0, 10)
-        )
+        # 檔案選擇說明
+        file_label = tk.Label(main_frame, text="選擇要轉換的圖片檔案:", 
+                             font=("Arial", 12), fg='white', bg='#2b2b2b')
+        file_label.pack(anchor=tk.W, pady=(0, 10))
         
-        ttk.Button(select_frame, text="選擇輸出資料夾", command=self.select_output_directory).grid(
-            row=0, column=1, padx=(0, 10)
-        )
+        # 按鈕框架
+        button_frame = tk.Frame(main_frame, bg='#2b2b2b')
+        button_frame.pack(fill=tk.X, pady=(0, 15))
         
-        ttk.Button(select_frame, text="清除選取", command=self.clear_files).grid(
-            row=0, column=2
-        )
+        # 使用 tk.Button 來確保在 dark mode 下可見
+        select_files_btn = tk.Button(button_frame, text="選擇檔案", command=self.select_files, 
+                                   width=15, bg='#4a4a4a', fg='white', 
+                                   activebackground='#5a5a5a', activeforeground='white',
+                                   relief='raised', bd=2)
+        select_files_btn.pack(side=tk.LEFT, padx=(0, 15))
         
-        files_frame = ttk.LabelFrame(main_frame, text="已選擇的檔案", padding="5")
-        files_frame.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(0, 10))
-        files_frame.columnconfigure(0, weight=1)
-        files_frame.rowconfigure(0, weight=1)
+        select_output_btn = tk.Button(button_frame, text="選擇輸出資料夾", command=self.select_output_directory, 
+                                    width=15, bg='#4a4a4a', fg='white',
+                                    activebackground='#5a5a5a', activeforeground='white',
+                                    relief='raised', bd=2)
+        select_output_btn.pack(side=tk.LEFT, padx=(0, 15))
         
-        self.files_listbox = tk.Listbox(files_frame, selectmode=tk.EXTENDED)
-        self.files_listbox.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        clear_btn = tk.Button(button_frame, text="清除選取", command=self.clear_files, 
+                            width=10, bg='#4a4a4a', fg='white',
+                            activebackground='#5a5a5a', activeforeground='white',
+                            relief='raised', bd=2)
+        clear_btn.pack(side=tk.LEFT)
         
-        files_scrollbar = ttk.Scrollbar(files_frame, orient=tk.VERTICAL, command=self.files_listbox.yview)
-        files_scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
+        # 檔案清單框架 - 使用 tk.LabelFrame 來控制顏色
+        files_frame = tk.LabelFrame(main_frame, text="已選擇的檔案", 
+                                   bg='#2b2b2b', fg='white', 
+                                   font=("Arial", 11), bd=2, relief='groove')
+        files_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
+        
+        # 使用Frame包裝以便加入滾動條
+        listbox_frame = tk.Frame(files_frame, bg='#2b2b2b')
+        listbox_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # 設置 listbox 的顏色以支援 dark mode
+        self.files_listbox = tk.Listbox(listbox_frame, selectmode=tk.EXTENDED, height=10, 
+                                       font=("Arial", 10),
+                                       bg='#3a3a3a', fg='white',
+                                       selectbackground='#5a5a5a', selectforeground='white')
+        self.files_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        files_scrollbar = tk.Scrollbar(listbox_frame, orient=tk.VERTICAL, command=self.files_listbox.yview,
+                                     bg='#4a4a4a', troughcolor='#2b2b2b')
+        files_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.files_listbox.configure(yscrollcommand=files_scrollbar.set)
         
-        output_frame = ttk.Frame(main_frame)
-        output_frame.grid(row=3, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 10))
-        output_frame.columnconfigure(1, weight=1)
+        # 輸出資料夾顯示
+        output_frame = tk.Frame(main_frame, bg='#2b2b2b')
+        output_frame.pack(fill=tk.X, pady=(0, 15))
         
-        ttk.Label(output_frame, text="輸出資料夾:").grid(row=0, column=0, sticky=tk.W, padx=(0, 5))
-        self.output_label = ttk.Label(output_frame, text="未選擇", foreground="gray")
-        self.output_label.grid(row=0, column=1, sticky=tk.W)
+        tk.Label(output_frame, text="輸出資料夾:", font=("Arial", 11), 
+                fg='white', bg='#2b2b2b').pack(side=tk.LEFT)
+        self.output_label = tk.Label(output_frame, text="未選擇", foreground="gray", 
+                                   font=("Arial", 10), bg='#2b2b2b')
+        self.output_label.pack(side=tk.LEFT, padx=(10, 0))
         
-        quality_frame = ttk.Frame(main_frame)
-        quality_frame.grid(row=4, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 10))
+        # 品質設定
+        quality_frame = tk.Frame(main_frame, bg='#2b2b2b')
+        quality_frame.pack(fill=tk.X, pady=(0, 15))
         
-        ttk.Label(quality_frame, text="品質設定:").grid(row=0, column=0, sticky=tk.W, padx=(0, 5))
+        tk.Label(quality_frame, text="品質設定:", font=("Arial", 11), 
+                fg='white', bg='#2b2b2b').pack(side=tk.LEFT)
         self.quality_var = tk.IntVar(value=90)
-        quality_scale = ttk.Scale(quality_frame, from_=10, to=100, variable=self.quality_var, 
-                                orient=tk.HORIZONTAL, length=200)
-        quality_scale.grid(row=0, column=1, padx=(0, 10))
-        self.quality_label = ttk.Label(quality_frame, text="90")
-        self.quality_label.grid(row=0, column=2)
+        quality_scale = tk.Scale(quality_frame, from_=10, to=100, variable=self.quality_var, 
+                               orient=tk.HORIZONTAL, length=250,
+                               bg='#4a4a4a', fg='white', troughcolor='#3a3a3a',
+                               activebackground='#5a5a5a', highlightthickness=0)
+        quality_scale.pack(side=tk.LEFT, padx=(10, 15))
+        self.quality_label = tk.Label(quality_frame, text="90", font=("Arial", 11, "bold"),
+                                    fg='white', bg='#2b2b2b')
+        self.quality_label.pack(side=tk.LEFT)
         
         quality_scale.configure(command=self.update_quality_label)
         
-        self.progress = ttk.Progressbar(main_frame, mode='determinate')
-        self.progress.grid(row=5, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 10))
+        # 進度條 - 保持 ttk 樣式但添加背景框架
+        progress_frame = tk.Frame(main_frame, bg='#2b2b2b')
+        progress_frame.pack(fill=tk.X, pady=(0, 15))
         
-        self.status_label = ttk.Label(main_frame, text="準備就緒")
-        self.status_label.grid(row=6, column=0, columnspan=2, sticky=tk.W, pady=(0, 10))
+        self.progress = ttk.Progressbar(progress_frame, mode='determinate')
+        self.progress.pack(fill=tk.X)
         
-        self.convert_button = ttk.Button(main_frame, text="開始轉換", command=self.start_conversion)
-        self.convert_button.grid(row=7, column=0, columnspan=2, pady=10)
+        # 狀態標籤
+        self.status_label = tk.Label(main_frame, text="準備就緒", font=("Arial", 10),
+                                   fg='white', bg='#2b2b2b')
+        self.status_label.pack(anchor=tk.W, pady=(0, 15))
+        
+        # 轉換按鈕 - 使用 tk.Button 來確保在 dark mode 下可見
+        self.convert_button = tk.Button(main_frame, text="開始轉換", command=self.start_conversion, 
+                                      width=20, font=("Arial", 12, "bold"),
+                                      bg='#0078d4', fg='white',
+                                      activebackground='#106ebe', activeforeground='white',
+                                      relief='raised', bd=3, cursor='hand2')
+        self.convert_button.pack(pady=15)
+        
+        # 強制更新GUI顯示
+        self.root.update_idletasks()
     
     def select_files(self):
         filetypes = [
@@ -120,7 +186,7 @@ class ImageToWebPGUI:
         directory = filedialog.askdirectory(title="選擇輸出資料夾")
         if directory:
             self.output_directory = directory
-            self.output_label.config(text=directory, foreground="black")
+            self.output_label.config(text=directory, foreground="white")
     
     def clear_files(self):
         self.selected_files = []
